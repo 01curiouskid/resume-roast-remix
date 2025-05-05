@@ -53,8 +53,12 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     clearTimeout(timeoutId);
     
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`API Error: ${error.message || 'Failed to generate roast'}`);
+      const errorData = await response.json();
+      // Check specifically for the insufficient balance error
+      if (response.status === 402 || (errorData.error && errorData.error.message === "Insufficient Balance")) {
+        throw new Error('Insufficient Balance: Your DeepSeek API key does not have enough credits. Please add credits to your account.');
+      }
+      throw new Error(`API Error: ${errorData.error?.message || 'Failed to generate roast'}`);
     }
     
     const data = await response.json();

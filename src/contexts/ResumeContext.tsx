@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { ROAST_LEVELS } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +14,8 @@ interface ResumeContextProps {
   isLoading: boolean;
   deepseekApiKey: string;
   setDeepseekApiKey: (key: string) => void;
+  apiError: string | null;
+  setApiError: (error: string | null) => void;
   handleResumeTextExtracted: (text: string) => void;
   handleSpicinessChange: (value: string) => void;
   handleGenerateRoast: () => Promise<void>;
@@ -38,11 +41,13 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
   const [roastText, setRoastText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [deepseekApiKey, setDeepseekApiKey] = useState<string>('');
+  const [apiError, setApiError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleResumeTextExtracted = (text: string) => {
     setResumeText(text);
     setRoastText(''); // Clear any existing roast
+    setApiError(null); // Clear any existing errors
   };
 
   const handleSpicinessChange = (value: string) => {
@@ -50,6 +55,7 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
     // If there's already a roast, clear it when changing spiciness
     if (roastText) {
       setRoastText('');
+      setApiError(null); // Clear any existing errors
     }
   };
 
@@ -70,6 +76,8 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
 
     try {
       setIsLoading(true);
+      setApiError(null); // Clear any previous errors
+      
       // We're passing the API key through a module scope variable
       // This is not ideal, but keeps the demo simpler
       (window as any).DEEPSEEK_API_KEY = deepseekApiKey;
@@ -83,6 +91,8 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
       if (error instanceof Error) {
         errorMessage = error.message;
       }
+      
+      setApiError(errorMessage);
       
       toast({
         title: "Roast Generation Failed",
@@ -104,6 +114,8 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
     isLoading,
     deepseekApiKey,
     setDeepseekApiKey,
+    apiError,
+    setApiError,
     handleResumeTextExtracted,
     handleSpicinessChange,
     handleGenerateRoast
