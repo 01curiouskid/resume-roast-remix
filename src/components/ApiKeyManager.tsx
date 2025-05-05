@@ -13,7 +13,7 @@ const ApiKeyManager: React.FC = () => {
 
   useEffect(() => {
     // Check for saved API key in localStorage or use the provided one
-    const savedApiKey = localStorage.getItem('openRouterApiKey') || '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';
+    const savedApiKey = localStorage.getItem('openRouterApiKey') || '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';
     if (savedApiKey) {
       setOpenRouterApiKey(savedApiKey);
     } else {
