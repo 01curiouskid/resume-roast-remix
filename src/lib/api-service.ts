@@ -13,11 +13,11 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
     
     // Get the API key from window or localStorage
-    const deepseekApiKey = (window as any).DEEPSEEK_API_KEY || localStorage.getItem('deepseekApiKey');
+    const openRouterApiKey = (window as any).OPENROUTER_API_KEY || localStorage.getItem('openRouterApiKey');
     
     // If no API key is provided, return a fallback message
-    if (!deepseekApiKey) {
-      console.warn('No DeepSeek API key provided, using fallback response');
+    if (!openRouterApiKey) {
+      console.warn('No OpenRouter API key provided, using fallback response');
       clearTimeout(timeoutId);
       return getFallbackRoast(spiciness);
     }
@@ -25,14 +25,16 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     const prompt = ROAST_PROMPTS[spiciness];
     const message = `${prompt}\n\nHere is the resume to roast:\n${resumeText}`;
     
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${deepseekApiKey}`
+        'Authorization': `Bearer ${openRouterApiKey}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'Resume Roaster'
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'openai/gpt-4o',
         messages: [
           {
             role: 'system',
@@ -54,9 +56,9 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     
     if (!response.ok) {
       const errorData = await response.json();
-      // Check specifically for the insufficient balance error
-      if (response.status === 402 || (errorData.error && errorData.error.message === "Insufficient Balance")) {
-        throw new Error('Insufficient Balance: Your DeepSeek API key does not have enough credits. Please add credits to your account.');
+      // Check for error messages from OpenRouter
+      if (response.status === 402 || (errorData.error && errorData.error.message === "Insufficient credit")) {
+        throw new Error('Insufficient Credit: Your OpenRouter API key does not have enough credits. Please add credits to your account.');
       }
       throw new Error(`API Error: ${errorData.error?.message || 'Failed to generate roast'}`);
     }

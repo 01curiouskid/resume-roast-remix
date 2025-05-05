@@ -18,7 +18,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave }) =>
   // Load saved key from localStorage when modal opens
   useEffect(() => {
     if (isOpen) {
-      const savedKey = localStorage.getItem('deepseekApiKey') || '';
+      const savedKey = localStorage.getItem('openRouterApiKey') || '';
       setApiKey(savedKey);
     }
   }, [isOpen]);
@@ -43,10 +43,10 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave }) =>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Key className="h-5 w-5" />
-            DeepSeek API Key
+            OpenRouter API Key
           </DialogTitle>
           <DialogDescription>
-            To generate AI roasts, please enter your DeepSeek API key.
+            To generate AI roasts, please enter your OpenRouter API key.
             This key will be stored locally in your browser.
           </DialogDescription>
         </DialogHeader>
@@ -55,7 +55,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave }) =>
           <div className="relative">
             <Input
               type={showKey ? 'text' : 'password'}
-              placeholder="Enter your DeepSeek API key"
+              placeholder="Enter your OpenRouter API key"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -79,12 +79,12 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave }) =>
             <p>Your API key is stored only in your browser and is never sent to our servers.</p>
             <p>
               <a 
-                href="https://platform.deepseek.com" 
+                href="https://openrouter.ai/keys" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="inline-flex items-center text-primary hover:underline"
               >
-                Get a DeepSeek API key
+                Get an OpenRouter API key
                 <ExternalLink className="ml-1 h-3 w-3" />
               </a>
             </p>

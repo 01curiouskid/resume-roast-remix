@@ -30,17 +30,17 @@ const RoastDisplay: React.FC = () => {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>API Error</AlertTitle>
           <AlertDescription>
-            {apiError.includes("Insufficient Balance") ? (
+            {apiError.includes("Insufficient Credit") ? (
               <div className="space-y-2">
-                <p>Your DeepSeek API key has insufficient balance. Please add credits to your account or use a different API key.</p>
+                <p>Your OpenRouter API key has insufficient credit. Please add credits to your account or use a different API key.</p>
                 <p className="text-sm">Error details: {apiError}</p>
                 <div className="mt-4">
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => window.open("https://platform.deepseek.com", "_blank")}
+                    onClick={() => window.open("https://openrouter.ai/keys", "_blank")}
                   >
-                    Visit DeepSeek Dashboard
+                    Visit OpenRouter Dashboard
                   </Button>
                 </div>
               </div>

@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { ROAST_LEVELS } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
@@ -12,8 +11,8 @@ interface ResumeContextProps {
   roastText: string;
   setRoastText: (text: string) => void;
   isLoading: boolean;
-  deepseekApiKey: string;
-  setDeepseekApiKey: (key: string) => void;
+  openRouterApiKey: string;
+  setOpenRouterApiKey: (key: string) => void;
   apiError: string | null;
   setApiError: (error: string | null) => void;
   handleResumeTextExtracted: (text: string) => void;
@@ -40,7 +39,7 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
   const [spiciness, setSpiciness] = useState<string>(ROAST_LEVELS.MILD);
   const [roastText, setRoastText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [deepseekApiKey, setDeepseekApiKey] = useState<string>('');
+  const [openRouterApiKey, setOpenRouterApiKey] = useState<string>('');
   const [apiError, setApiError] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -69,7 +68,7 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
       return;
     }
 
-    if (!deepseekApiKey) {
+    if (!openRouterApiKey) {
       // We'll handle this in the ApiKeyManager component
       return;
     }
@@ -80,7 +79,7 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
       
       // We're passing the API key through a module scope variable
       // This is not ideal, but keeps the demo simpler
-      (window as any).DEEPSEEK_API_KEY = deepseekApiKey;
+      (window as any).OPENROUTER_API_KEY = openRouterApiKey;
       
       const result = await generateRoast(resumeText, spiciness as any);
       setRoastText(result);
@@ -112,8 +111,8 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
     roastText,
     setRoastText,
     isLoading,
-    deepseekApiKey,
-    setDeepseekApiKey,
+    openRouterApiKey,
+    setOpenRouterApiKey,
     apiError,
     setApiError,
     handleResumeTextExtracted,
