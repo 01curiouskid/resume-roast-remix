@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Flame, AlertTriangle, SquareTerminal, Key, FileWarning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ const Index = () => {
       title: "API Key Saved",
       description: "Your DeepSeek API key has been saved successfully.",
     });
+    setIsApiKeyModalOpen(false);
   };
 
   const handleGenerateRoast = async () => {

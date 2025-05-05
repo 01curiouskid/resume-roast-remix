@@ -1,8 +1,6 @@
 
 import { ROAST_LEVELS, ROAST_PROMPTS, API_TIMEOUT } from './constants';
 
-const DEEPSEEK_API_KEY = ''; // This should be provided by the user or stored securely
-
 type RoastLevel = typeof ROAST_LEVELS[keyof typeof ROAST_LEVELS];
 
 export async function generateRoast(resumeText: string, spiciness: RoastLevel): Promise<string> {
@@ -14,8 +12,11 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
     
+    // Get the API key from window or localStorage
+    const deepseekApiKey = (window as any).DEEPSEEK_API_KEY || localStorage.getItem('deepseekApiKey');
+    
     // If no API key is provided, return a fallback message
-    if (!DEEPSEEK_API_KEY) {
+    if (!deepseekApiKey) {
       console.warn('No DeepSeek API key provided, using fallback response');
       clearTimeout(timeoutId);
       return getFallbackRoast(spiciness);
@@ -28,7 +29,7 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+        'Authorization': `Bearer ${deepseekApiKey}`
       },
       body: JSON.stringify({
         model: 'deepseek-chat',

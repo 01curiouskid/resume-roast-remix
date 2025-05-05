@@ -1,3 +1,7 @@
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set worker source path
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export async function extractTextFromFile(file: File): Promise<string> {
   const fileType = file.name.split('.').pop()?.toLowerCase();
@@ -19,17 +23,27 @@ export async function extractTextFromFile(file: File): Promise<string> {
 
 async function extractFromPDF(file: File): Promise<string> {
   try {
-    // For simplicity in this version, we'll use a mock implementation
-    // In a real app, you would use a PDF parsing library
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        // This is a simplified mock. In reality, you'd use a PDF parsing library
-        // to properly extract the text content
-        resolve(`[PDF Content extracted from ${file.name}]`);
-      };
-      reader.readAsText(file);
-    });
+    // Convert the file to ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    let fullText = '';
+    
+    // Extract text from each page
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      
+      fullText += pageText + '\n';
+    }
+    
+    return fullText;
   } catch (error) {
     console.error('Error extracting text from PDF:', error);
     throw new Error('Failed to extract text from PDF. Please try another file.');
@@ -37,14 +51,15 @@ async function extractFromPDF(file: File): Promise<string> {
 }
 
 async function extractFromDOCX(file: File): Promise<string> {
+  // For now, we'll keep the mock implementation since properly parsing DOCX
+  // would require more complex libraries and likely a backend service
   try {
-    // For simplicity in this version, we'll use a mock implementation
-    // In a real app, you would use a DOCX parsing library
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => {
-        // This is a simplified mock. In reality, you'd use a DOCX parsing library
-        resolve(`[DOCX Content extracted from ${file.name}]`);
+        // In a real app, we would use a DOCX parsing library
+        // This is still a mock implementation
+        resolve(`[Extracted content from ${file.name}]\n\nThis is a mock implementation for DOCX parsing. For accurate results, please upload a PDF or TXT file.`);
       };
       reader.readAsText(file);
     });

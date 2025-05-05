@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Key, EyeIcon, EyeOffIcon } from 'lucide-react';
+import { Key, EyeIcon, EyeOffIcon, ExternalLink } from 'lucide-react';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -14,11 +14,18 @@ interface ApiKeyModalProps {
 const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave }) => {
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
+  
+  // Load saved key from localStorage when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const savedKey = localStorage.getItem('deepseekApiKey') || '';
+      setApiKey(savedKey);
+    }
+  }, [isOpen]);
 
   const handleSave = () => {
     if (apiKey.trim()) {
       onSave(apiKey.trim());
-      onClose();
     }
   };
 
@@ -29,7 +36,9 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave }) =>
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) onClose();
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -66,9 +75,20 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave }) =>
               )}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Your API key is stored only in your browser and is never sent to our servers.
-          </p>
+          <div className="text-xs text-muted-foreground mt-2 space-y-1">
+            <p>Your API key is stored only in your browser and is never sent to our servers.</p>
+            <p>
+              <a 
+                href="https://platform.deepseek.com" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="inline-flex items-center text-primary hover:underline"
+              >
+                Get a DeepSeek API key
+                <ExternalLink className="ml-1 h-3 w-3" />
+              </a>
+            </p>
+          </div>
         </div>
         
         <DialogFooter>
