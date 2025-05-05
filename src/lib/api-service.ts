@@ -24,14 +24,18 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     const prompt = ROAST_PROMPTS[spiciness];
     const message = `${prompt}\n\nHere is the resume to roast:\n${resumeText}`;
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openRouterApiKey}`,
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'Resume Roaster'
-      },
+    const referer = import.meta.env.MODE === 'production'
+    ? 'https://resume-roast-remix.lovable.app'
+    : window.location.origin;
+  
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openRouterApiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': referer,
+      'X-Title': 'Resume Roaster'
+    },
       body: JSON.stringify({
         model: 'google/gemma-3-1b-it:free',
         messages: [
