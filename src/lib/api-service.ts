@@ -33,7 +33,7 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
         'X-Title': 'Resume Roaster'
       },
       body: JSON.stringify({
-        model: 'google/gemma-3-4b-it:free',
+        model: 'google/gemma-3-1b-it:free',
         messages: [
           {
             role: 'system',
