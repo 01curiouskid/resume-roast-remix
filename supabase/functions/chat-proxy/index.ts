@@ -37,6 +37,8 @@ serve(async (req) => {
       );
     }
 
+    console.log("Sending request to OpenRouter API");
+    
     // Construct the OpenRouter API request
     const openRouterResponse = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
@@ -78,6 +80,8 @@ serve(async (req) => {
         errorMessage = `OpenRouter API error: ${openRouterResponse.status} ${openRouterResponse.statusText}`;
       }
 
+      console.error("OpenRouter API error:", errorMessage);
+      
       return new Response(
         JSON.stringify({ error: errorMessage }),
         {
@@ -87,11 +91,14 @@ serve(async (req) => {
       );
     }
 
+    console.log("Received response from OpenRouter API");
+    
     // Get the response text first to avoid JSON parse errors
     const responseText = await openRouterResponse.text();
     
     // Check if the response is empty
     if (!responseText || responseText.trim() === '') {
+      console.error("Empty response from OpenRouter API");
       return new Response(
         JSON.stringify({ error: "Empty response from OpenRouter API" }),
         {
@@ -101,12 +108,18 @@ serve(async (req) => {
       );
     }
 
+    console.log("Response text length:", responseText.length);
+    
     // Try to parse the response as JSON
     let openRouterData;
     try {
       openRouterData = JSON.parse(responseText);
+      console.log("Successfully parsed JSON response");
     } catch (error) {
       // If parsing fails, return the error
+      console.error("Failed to parse response as JSON:", error.message);
+      console.error("Raw response (first 500 chars):", responseText.substring(0, 500));
+      
       return new Response(
         JSON.stringify({ 
           error: "Failed to parse OpenRouter API response", 
@@ -120,7 +133,24 @@ serve(async (req) => {
       );
     }
 
+    // Verify we have the expected data structure
+    if (!openRouterData.choices || !openRouterData.choices[0]) {
+      console.error("Missing 'choices' in API response:", JSON.stringify(openRouterData).substring(0, 500));
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid response structure from OpenRouter API",
+          details: "Missing 'choices' array in response",
+          partialResponse: JSON.stringify(openRouterData).substring(0, 500)
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Return the response to the client
+    console.log("Sending successful response to client");
     return new Response(JSON.stringify(openRouterData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

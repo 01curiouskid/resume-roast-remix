@@ -19,6 +19,8 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
       ? 'https://resume-roast-remix.lovable.app'
       : window.location.origin;
     
+    console.log(`Making request to ${baseUrl}/api/chat-proxy`);
+    
     // Use Supabase Edge Function instead of direct OpenRouter API call
     const response = await fetch(`${baseUrl}/api/chat-proxy`, {
       method: 'POST',
@@ -38,8 +40,34 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
 
     clearTimeout(timeoutId);
 
+    console.log('Received response with status:', response.status);
+    
+    if (!response.ok) {
+      let errorMessage = `API Error: Status ${response.status}`;
+      
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage = errorData.error;
+          console.error('Error details:', errorData);
+        }
+      } catch (e) {
+        console.error('Failed to parse error response:', e);
+      }
+      
+      throw new Error(errorMessage);
+    }
+
     // First get response as text to avoid JSON parse errors
     const responseText = await response.text();
+    
+    // Log the response content for debugging
+    console.log('Response content length:', responseText.length);
+    if (responseText.length < 100) {
+      console.log('Full response text:', responseText);
+    } else {
+      console.log('First 100 chars of response:', responseText.substring(0, 100));
+    }
     
     // Check if response is empty
     if (!responseText || responseText.trim() === '') {
@@ -50,17 +78,21 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     let data;
     try {
       data = JSON.parse(responseText);
+      console.log('Successfully parsed response as JSON');
     } catch (error) {
-      console.error('Failed to parse API response:', responseText);
+      console.error('Failed to parse API response:', error);
+      console.error('Response text (first 100 chars):', responseText.substring(0, 100));
       throw new Error(`Failed to parse API response: ${error.message}`);
     }
 
-    if (!response.ok) {
-      // Check for credit error
-      if (response.status === 402 || (data.error && data.error.includes("Insufficient"))) {
-        throw new Error('Insufficient Credit: The OpenRouter API key does not have enough credits. Please contact the site administrator.');
-      }
-      throw new Error(`API Error: ${data.error || 'Failed to generate roast'}`);
+    // Check for credit error
+    if (response.status === 402 || (data.error && data.error.includes("Insufficient"))) {
+      throw new Error('Insufficient Credit: The OpenRouter API key does not have enough credits. Please contact the site administrator.');
+    }
+
+    // Check if there's an error message in the parsed data
+    if (data.error) {
+      throw new Error(`API Error: ${data.error}`);
     }
 
     const result =
@@ -69,6 +101,7 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
       null;
 
     if (!result) {
+      console.error('Invalid response structure:', data);
       throw new Error('The model did not return a valid response.');
     }
 
