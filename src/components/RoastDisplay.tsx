@@ -32,17 +32,8 @@ const RoastDisplay: React.FC = () => {
           <AlertDescription>
             {apiError.includes("Insufficient Credit") ? (
               <div className="space-y-2">
-                <p>Your OpenRouter API key has insufficient credit. Please add credits to your account or use a different API key.</p>
+                <p>The application's OpenRouter API key has insufficient credit. Please try again later or use your own API key.</p>
                 <p className="text-sm">Error details: {apiError}</p>
-                <div className="mt-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => window.open("https://openrouter.ai/keys", "_blank")}
-                  >
-                    Visit OpenRouter Dashboard
-                  </Button>
-                </div>
               </div>
             ) : (
               apiError

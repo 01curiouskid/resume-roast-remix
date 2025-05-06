@@ -12,13 +12,10 @@ const ApiKeyManager: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for saved API key in localStorage or use the provided one
-    const savedApiKey = localStorage.getItem('openRouterApiKey') || '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';
+    // Check for saved API key in localStorage without a hardcoded fallback
+    const savedApiKey = localStorage.getItem('openRouterApiKey');
     if (savedApiKey) {
       setOpenRouterApiKey(savedApiKey);
-    } else {
-      // If no API key is found, prompt the user to set one
-      setIsApiKeyModalOpen(true);
     }
   }, [setOpenRouterApiKey]);
 
@@ -39,20 +36,22 @@ const ApiKeyManager: React.FC = () => {
     setIsApiKeyModalOpen(false);
   };
 
-  if (openRouterApiKey && !apiError?.includes("Insufficient Credit")) {
-    return null; // Don't render anything if API key is set and no credit error
+  // We now only show the API key manager when there's an error
+  // or if the user explicitly wants to set their own API key
+  if (!apiError?.includes("Insufficient Credit")) {
+    return null;
   }
 
   const showCreditError = apiError?.includes("Insufficient Credit");
 
   return (
     <>
-      <div className={`mt-8 p-4 border rounded-lg ${showCreditError ? 'bg-red-50' : 'bg-amber-50'} flex items-center gap-3`}>
-        <AlertTriangle className={`h-5 w-5 ${showCreditError ? 'text-red-500' : 'text-amber-500'} flex-shrink-0`} />
+      <div className="mt-8 p-4 border rounded-lg bg-red-50 flex items-center gap-3">
+        <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
         <div className="flex-1">
-          <p className={`text-sm ${showCreditError ? 'text-red-800' : 'text-amber-800'}`}>
+          <p className="text-sm text-red-800">
             {showCreditError 
-              ? "Your OpenRouter API key has insufficient credits. Please add credits to your account or use a different API key." 
+              ? "The application's OpenRouter API key has insufficient credits. You can contact the site administrator or use your own API key." 
               : "You need to set your OpenRouter API key to generate AI roasts. Your key is stored only in your browser."}
           </p>
         </div>
@@ -63,7 +62,7 @@ const ApiKeyManager: React.FC = () => {
           className="whitespace-nowrap"
         >
           <Key className="h-4 w-4 mr-2" />
-          {showCreditError ? "Update API Key" : "Set API Key"}
+          {showCreditError ? "Use My API Key" : "Set API Key"}
         </Button>
       </div>
 

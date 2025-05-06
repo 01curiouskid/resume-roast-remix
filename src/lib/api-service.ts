@@ -11,46 +11,26 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
-    // Get the API key from window or localStorage
-    const openRouterApiKey = (window as any).OPENROUTER_API_KEY || localStorage.getItem('openRouterApiKey');
-
-    // If no API key is provided, return a fallback message
-    if (!openRouterApiKey) {
-      console.warn('No OpenRouter API key provided, using fallback response');
-      clearTimeout(timeoutId);
-      return getFallbackRoast(spiciness);
-    }
-
     const prompt = ROAST_PROMPTS[spiciness];
-    const message = `${prompt}\n\nHere is the resume to roast:\n${resumeText}`;
-
-    const referer = import.meta.env.MODE === 'production'
-    ? 'https://resume-roast-remix.lovable.app'
-    : window.location.origin;
-  
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openRouterApiKey}`,
-      'Content-Type': 'application/json',
-      'HTTP-Referer': referer,
-      'X-Title': 'Resume Roaster'
-    },
+    
+    // Determine base URL for the API
+    const baseUrl = import.meta.env.MODE === 'production'
+      ? 'https://resume-roast-remix.lovable.app'
+      : window.location.origin;
+    
+    // Use Supabase Edge Function instead of direct OpenRouter API call
+    const response = await fetch(`${baseUrl}/api/chat-proxy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        model: 'google/gemma-3-1b-it:free',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a resume roasting expert that creates humorous, critical feedback.'
-          },
-          {
-            role: 'user',
-            content: message
-          }
-        ],
-        max_tokens: 500,
+        resumeText,
+        spiciness,
+        prompt,
         temperature: spiciness === ROAST_LEVELS.MILD ? 0.7 :
-                     spiciness === ROAST_LEVELS.SPICY ? 0.8 : 0.9
+                    spiciness === ROAST_LEVELS.SPICY ? 0.8 : 0.9,
+        model: 'google/gemma-3-1b-it:free'
       }),
       signal: controller.signal
     });
@@ -59,15 +39,13 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
 
     if (!response.ok) {
       const errorData = await response.json();
-      // Show credit error if relevant
+      // Check for credit error
       if (response.status === 402 || (errorData.error && errorData.error.message === "Insufficient credit")) {
-        throw new Error('Insufficient Credit: Your OpenRouter API key does not have enough credits. Please add credits to your account.');
+        throw new Error('Insufficient Credit: The OpenRouter API key does not have enough credits. Please contact the site administrator.');
       }
       throw new Error(`API Error: ${errorData.error?.message || 'Failed to generate roast'}`);
     }
 
-    // const data = await response.json();
-    // return data.choices[0].message.content.trim();
     const data = await response.json();
 
     const result =

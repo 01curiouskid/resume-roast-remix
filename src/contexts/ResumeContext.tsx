@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { ROAST_LEVELS } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
@@ -68,18 +69,9 @@ export const ResumeProvider: React.FC<ResumeProviderProps> = ({ children }) => {
       return;
     }
 
-    if (!openRouterApiKey) {
-      // We'll handle this in the ApiKeyManager component
-      return;
-    }
-
     try {
       setIsLoading(true);
       setApiError(null); // Clear any previous errors
-      
-      // We're passing the API key through a module scope variable
-      // This is not ideal, but keeps the demo simpler
-      (window as any).OPENROUTER_API_KEY = openRouterApiKey;
       
       const result = await generateRoast(resumeText, spiciness as any);
       setRoastText(result);
