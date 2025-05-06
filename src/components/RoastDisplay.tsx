@@ -35,6 +35,19 @@ const RoastDisplay: React.FC = () => {
                 <p>The application's OpenRouter API key has insufficient credit. Please try again later or use your own API key.</p>
                 <p className="text-sm">Error details: {apiError}</p>
               </div>
+            ) : apiError.includes("json") ? (
+              <div className="space-y-2">
+                <p>There was a problem with the API response. Please try again or try a different spiciness level.</p>
+                <p className="text-sm">Error details: {apiError}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleGenerateRoast}
+                  className="mt-2"
+                >
+                  Try Again
+                </Button>
+              </div>
             ) : (
               apiError
             )}

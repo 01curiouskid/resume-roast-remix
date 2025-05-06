@@ -1,3 +1,4 @@
+
 import { ROAST_LEVELS, ROAST_PROMPTS, API_TIMEOUT } from './constants';
 
 type RoastLevel = typeof ROAST_LEVELS[keyof typeof ROAST_LEVELS];
@@ -37,16 +38,30 @@ export async function generateRoast(resumeText: string, spiciness: RoastLevel): 
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      // Check for credit error
-      if (response.status === 402 || (errorData.error && errorData.error.message === "Insufficient credit")) {
-        throw new Error('Insufficient Credit: The OpenRouter API key does not have enough credits. Please contact the site administrator.');
-      }
-      throw new Error(`API Error: ${errorData.error?.message || 'Failed to generate roast'}`);
+    // First get response as text to avoid JSON parse errors
+    const responseText = await response.text();
+    
+    // Check if response is empty
+    if (!responseText || responseText.trim() === '') {
+      throw new Error('The API returned an empty response. Please try again later.');
+    }
+    
+    // Try to parse the response as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (error) {
+      console.error('Failed to parse API response:', responseText);
+      throw new Error(`Failed to parse API response: ${error.message}`);
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      // Check for credit error
+      if (response.status === 402 || (data.error && data.error.includes("Insufficient"))) {
+        throw new Error('Insufficient Credit: The OpenRouter API key does not have enough credits. Please contact the site administrator.');
+      }
+      throw new Error(`API Error: ${data.error || 'Failed to generate roast'}`);
+    }
 
     const result =
       data.choices?.[0]?.message?.content ??
